@@ -1,0 +1,91 @@
+<html>
+      <head>
+        <title>ESP32 Car Control</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        {%load static%}
+        <link rel="stylesheet" href="{% static link %}">
+      </head>
+      <body>
+        <h1>ESP32 Car Control</h1>
+        <div class="joystick-container">
+          <div class="vertical-buttons">
+            <button 
+              id="forward" 
+              onmousedown="startMoving('F')" 
+              onmouseup="stopMoving()" 
+              ontouchstart="startMoving('F')" 
+              ontouchend="stopMoving()">Forward</button>
+          </div>
+          <div class="direction-buttons">
+            <button 
+              id="left" 
+              onmousedown="startMoving('L')" 
+              onmouseup="stopMoving()" 
+              ontouchstart="startMoving('L')" 
+              ontouchend="stopMoving()">Left</button>
+            <button onclick="sendCommand('S')">Stop</button>
+            <button 
+              id="right" 
+              onmousedown="startMoving('R')" 
+              onmouseup="stopMoving()" 
+              ontouchstart="startMoving('R')" 
+              ontouchend="stopMoving()">Right</button>
+          </div>
+          <div class="vertical-buttons">
+            <button 
+              id="backward" 
+              onmousedown="startMoving('B')" 
+              onmouseup="stopMoving()" 
+              ontouchstart="startMoving('B')" 
+              ontouchend="stopMoving()">Backward</button>
+          </div>
+        </div>
+        <br>
+        <button onclick="toggleMode()">Toggle Mode</button>
+        <p id="modeDisplay">Current Mode: Line</p>
+        <script>
+            function startMoving(direction) {
+              fetch('/api/send-command/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}',  // Include CSRF token for POST requests
+                },
+                body: JSON.stringify({ command: direction }),
+              })
+              .then(response => response.json())
+              .then(data => {
+                console.log('Command sent:', data.command);
+              })
+              .catch(error => {
+                console.error('Error sending command:', error);
+              });
+            }
+          
+            function stopMoving() {
+              fetch('/api/send-command/', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify({ command: 'S' }),  // Stop command
+              })
+              .then(response => response.json())
+              .then(data => {
+                console.log('Stopped:', data.command);
+              })
+              .catch(error => {
+                console.error('Error stopping:', error);
+              });
+            }
+          
+            function toggleMode() {
+              // You can implement mode toggling logic here if needed
+              const modeDisplay = document.getElementById('modeDisplay');
+              const currentMode = modeDisplay.textContent.includes('Line') ? 'Remote' : 'Line';
+              modeDisplay.textContent = `Current Mode: ${currentMode}`;
+            }
+          </script>
+      </body>
+      </html>
